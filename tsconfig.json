@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES6",                // Compile to ES6 JavaScript syntax
+    "module": "commonjs",           // Use CommonJS module system (Node.js style)
+    "outDir": "dist",               // Output compiled files to the 'dist' folder
+    "rootDir": "app",               // Root folder of source TypeScript files is 'app'
+    "esModuleInterop": true,        // Enables compatibility for importing CommonJS modules using ES6 import syntax
+    "strict": true,                 // Enable all strict type-checking options for safer code
+    "skipLibCheck": true,           // Skip type-checking of all declaration files like libraries and dependencies (.d.ts) to speed up compilation
+    "types": ["node"]               // Include type definitions for Node.js environment
+  },
+  "include": ["app"]                // Include all TypeScript files inside 'app' folder for compilation
+}
