@@ -90,11 +90,15 @@ const getCustomers = async (req: Request, res: Response, next: NextFunction) => 
       customers,
       resCode.OK
     );
-  } catch (error) {
-    return next(error);
-  }
-};
-
+  }catch (error: any) {
+      if (error instanceof mongoose.Error.ValidationError) {
+        const messages = Object.values(error.errors).map((err) => err.message);
+        return responseHandler.error(res, messages.join(", "), resCode.BAD_REQUEST);
+      }
+  
+      return next(error); // fallback for unknown errors
+    }
+  };
 // 🔍 Get Customer by ID
 const getCustomerById = async (req: Request, res: Response, next: NextFunction) => {
   try {

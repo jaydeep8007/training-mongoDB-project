@@ -5,6 +5,7 @@ import { resCode } from "../constants/resCode";
 import { responseHandler } from "../services/responseHandler.service";
 import mongoose from "mongoose";
 
+// ✅ Create Job
 export const createJob = async (
   req: Request,
   res: Response,

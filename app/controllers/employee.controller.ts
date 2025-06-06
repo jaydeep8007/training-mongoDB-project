@@ -4,6 +4,8 @@ import { employeeCreateSchema } from "../validations/employee.validation";
 import { responseHandler } from "../services/responseHandler.service";
 import { resCode } from "../constants/resCode";
 import mongoose from "mongoose";
+
+// ➕ Create Employee
 const createEmployee = async (
   req: Request,
   res: Response,

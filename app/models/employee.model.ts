@@ -12,7 +12,6 @@ const EmployeeSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       unique: true,
       trim: true,
-      // You can add a regex for email validation if you want
       match: [/\S+@\S+\.\S+/, "Please enter a valid email address"],
     },
     emp_password: {

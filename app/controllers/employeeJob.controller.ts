@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import employeeJobModel from "../models/employee_job.model";
+import employeeJobModel from "../models/employeeJob.model";
 import employeeModel from "../models/employee.model";
 import jobModel from "../models/job.model";
-import employee_jobValidation from "../validations/employee_job.validation";
+import employee_jobValidation from "../validations/employeeJob.validation";
 import { responseHandler } from "../services/responseHandler.service";
 import { resCode } from "../constants/resCode";
 import mongoose from "mongoose";
@@ -163,7 +163,40 @@ const assignJobToManyEmployees = async (
   }
 };
 
+// ✅ Get all employee-job associations with full details
+const getAllEmployeeJobMappings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const mappings = await employeeJobModel
+      .find()
+      .populate("emp_id") // pulls employee document
+      .populate("job_id"); // pulls job document
+
+    return responseHandler.success(
+      res,
+      "All employee-job mappings fetched",
+      mappings,
+      resCode.OK
+    );
+  } catch (error: any) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return responseHandler.error(
+        res,
+        messages.join(", "),
+        resCode.BAD_REQUEST
+      );
+    }
+
+    return next(error); // fallback for unknown errors
+  }
+};
+
 export default {
   assignJobToEmployee,
   assignJobToManyEmployees,
+  getAllEmployeeJobMappings,
 };

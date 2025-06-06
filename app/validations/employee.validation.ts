@@ -12,7 +12,7 @@ export const employeeCreateSchema = z.object({
     .string()
     .trim()
     .email("Invalid email address")
-    .transform(email => email.toLowerCase())
+    .transform((email) => email.toLowerCase())
     .describe("Employee Email"),
 
   emp_password: z
@@ -60,5 +60,4 @@ export const employeeCreateSchema = z.object({
     .min(10, "Mobile number must be at least 10 digits")
     .max(15, "Mobile number must be at most 15 digits")
     .describe("Mobile Number"),
-
 });

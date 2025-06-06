@@ -6,16 +6,10 @@ dotenv.config();
 
 const router = express.Router();
 
-
 import jobController from "../controllers/job.controller";
 
 // 📦 Employee CRUD routes
 router.post("/", jobController.createJob);
 router.get("/", jobController.getAllJobs);
-
-
-
-
-
 
 export default router;

@@ -6,7 +6,7 @@ dotenv.config();
 
 const router = express.Router();
 import customerController from "../controllers/customer.controller";
-import customerAuthRoutes from "./customer.auth.route";
+import customerAuthRoutes from "./customerAuth.route";
 
 // 📦 Customer CRUD routes
 router.post("/", customerController.addCustomer);
