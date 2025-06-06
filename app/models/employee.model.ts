@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+
 const EmployeeSchema = new mongoose.Schema(
   {
     emp_name: {
@@ -10,7 +11,6 @@ const EmployeeSchema = new mongoose.Schema(
       type: String,
       required: [true, "Email is required"],
       unique: true,
-      lowercase: true,
       trim: true,
       // You can add a regex for email validation if you want
       match: [/\S+@\S+\.\S+/, "Please enter a valid email address"],
@@ -24,8 +24,9 @@ const EmployeeSchema = new mongoose.Schema(
       required: [true, "Company name is required"],
     },
     emp_mobile_number: {
-      type: String,  // use String for mobile numbers to preserve formatting and leading zeros
+      type: Number,  // use String for mobile numbers to preserve formatting and leading zeros
       required: [true, "Mobile number is required"],
+      unique: true,
       // You can add validation here for length or pattern if needed
     },
   },

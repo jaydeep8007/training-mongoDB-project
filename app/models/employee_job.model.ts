@@ -19,8 +19,6 @@ const EmployeeJobSchema = new mongoose.Schema(
   }
 );
 
-// You generally don't need an auto-increment primary key in MongoDB; the _id field is sufficient.
-
 const EmployeeJob = mongoose.model("EmployeeJob", EmployeeJobSchema);
 
 export default EmployeeJob;

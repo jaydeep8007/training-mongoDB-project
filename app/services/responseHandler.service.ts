@@ -1,4 +1,3 @@
-// utils/responseHandler.ts
 
 export const responseHandler = {
   success(res: any, message: string, data?: any, status = 200) {

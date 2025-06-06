@@ -1,19 +1,19 @@
-import { NextFunction, Request, Response } from "express";
-import employeeJob from "../models/employee_job.model";
+import { Request, Response, NextFunction } from "express";
+import employeeJobModel from "../models/employee_job.model";
+import employeeModel from "../models/employee.model";
+import jobModel from "../models/job.model";
 import employee_jobValidation from "../validations/employee_job.validation";
 import { responseHandler } from "../services/responseHandler.service";
 import { resCode } from "../constants/resCode";
-import { ValidationError } from "sequelize";
-import job from "../models/job.model";
-import employee from "../models/employee.model";
+import mongoose from "mongoose";
 
+// ✅ Assign job to single employee
 const assignJobToEmployee = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    // ✅ Validate with Zod
     const parsed = employee_jobValidation.assignJobSchema.safeParse(req.body);
     if (!parsed.success) {
       const errorMsg = parsed.error.errors.map((err) => err.message).join(", ");
@@ -22,43 +22,63 @@ const assignJobToEmployee = async (
 
     const { emp_id, job_id } = parsed.data;
 
-    // ✅ Double check presence (optional if Zod handles this)
-    if (!emp_id || !job_id) {
+    // Check if job exists
+    const jobExists = await jobModel.findById(job_id);
+    if (!jobExists) {
+      return responseHandler.error(res, "Job not found", resCode.NOT_FOUND);
+    }
+
+    // Check if employee exists
+    const employeeExists = await employeeModel.findById(emp_id);
+    if (!employeeExists) {
       return responseHandler.error(
         res,
-        "emp_id and job_id are required",
+        "Employee not found",
+        resCode.NOT_FOUND
+      );
+    }
+
+    // Check if already assigned
+    const alreadyAssigned = await employeeJobModel.findOne({ emp_id });
+    if (alreadyAssigned) {
+      return responseHandler.error(
+        res,
+        "Employee is already assigned a job",
         resCode.BAD_REQUEST
       );
     }
 
-    // ✅ Create assignment
-    const assignment = await employeeJob.create(parsed.data);
+    const assignment = await employeeJobModel.create({ emp_id, job_id });
 
     return responseHandler.success(
       res,
-      "Assignment created successfully",
+      "Job assigned to employee successfully",
       assignment,
       resCode.CREATED
     );
-  } catch (error) {
-    // ✅ Sequelize validation error
-    if (error instanceof ValidationError) {
-      const messages = error.errors.map((err) => err.message).join(", ");
-      return responseHandler.error(res, messages, resCode.BAD_REQUEST);
+  } catch (error: any) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return responseHandler.error(
+        res,
+        messages.join(", "),
+        resCode.BAD_REQUEST
+      );
     }
 
-    // 🔁 Forward unhandled errors
-    return next(error);
+    return next(error); // fallback for unknown errors
   }
 };
+
 const assignJobToManyEmployees = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    // ✅ Zod validation first
-    const parsed = employee_jobValidation.assignMultipleJobsSchema.safeParse(req.body);
+    const parsed = employee_jobValidation.assignMultipleJobsSchema.safeParse(
+      req.body
+    );
     if (!parsed.success) {
       const errorMsg = parsed.error.errors.map((err) => err.message).join(", ");
       return responseHandler.error(res, errorMsg, resCode.BAD_REQUEST);
@@ -66,70 +86,84 @@ const assignJobToManyEmployees = async (
 
     const { emp_ids, job_id } = parsed.data;
 
-    // ✅ Check if job exists
-    const jobExists = await job.findByPk(job_id);
-    if (!jobExists) {
+    // ✅ Get job details (including job name)
+    const job = await jobModel.findById(job_id);
+    if (!job) {
       return responseHandler.error(
         res,
-        `Job with ID ${job_id} does not exist`,
+        `Job not found for ID: ${job_id}`,
         resCode.NOT_FOUND
       );
     }
 
-    // ✅ Check if all employee IDs exist
-    const foundEmployees = await employee.findAll({
-      where: { emp_id: emp_ids },
-    });
-
-    const foundEmpIds = foundEmployees.map((emp) => emp.get("emp_id"));
-    const missingEmpIds = emp_ids.filter((id) => !foundEmpIds.includes(id));
+    // ✅ Get all employee documents
+    const employees = await employeeModel.find({ _id: { $in: emp_ids } });
+    const foundEmpIds = employees.map((emp) => emp._id.toString());
+    const missingEmpIds = emp_ids.filter(
+      (id: string) => !foundEmpIds.includes(id)
+    );
 
     if (missingEmpIds.length > 0) {
       return responseHandler.error(
         res,
-        `These employee IDs do not exist: ${missingEmpIds.join(", ")}`,
+        `Employee(s) not found for ID(s): ${missingEmpIds.join(", ")}`,
         resCode.NOT_FOUND
       );
     }
 
-    // ✅ Check if any of these employees already have a job assigned
-    const existingAssignments = await employeeJob.findAll({
-      where: { emp_id: emp_ids },
+    // ✅ Check already assigned
+    const existingAssignments = await employeeJobModel.find({
+      emp_id: { $in: emp_ids },
     });
 
-    if (existingAssignments.length > 0) {
-      const alreadyAssignedEmpIds = existingAssignments.map((ea) => ea.get("emp_id"));
+    const alreadyAssignedEmpIds = existingAssignments.map((ea) =>
+      ea.emp_id.toString()
+    );
+
+    if (alreadyAssignedEmpIds.length > 0) {
+      const alreadyAssignedEmpNames = employees
+        .filter((emp) => alreadyAssignedEmpIds.includes(emp._id.toString()))
+        .map((emp) => emp.emp_name)
+        .join(", ");
+
       return responseHandler.error(
         res,
-        `These employees are already assigned a job: ${alreadyAssignedEmpIds.join(", ")}`,
+        `These employees are already assigned a job: ${alreadyAssignedEmpNames}`,
         resCode.BAD_REQUEST
       );
     }
 
-    // ✅ All checks passed — assign job
-    const assignments = await Promise.all(
-      emp_ids.map((emp_id) =>
-        employeeJob.create({ emp_id, job_id })
-      )
+    // ✅ Create assignments
+    const assignments = await employeeJobModel.insertMany(
+      emp_ids.map((emp_id) => ({
+        emp_id,
+        job_id,
+      }))
     );
+
+    const assignedEmpNames = employees.map((emp) => emp.emp_name).join(", ");
 
     return responseHandler.success(
       res,
-      "Assignments created successfully",
+      `Job '${job.job_name}' assigned to: ${assignedEmpNames}`,
       assignments,
       resCode.CREATED
     );
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      const messages = error.errors.map((err) => err.message);
-      return responseHandler.error(res, messages.join(", "), resCode.BAD_REQUEST);
+  } catch (error: any) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return responseHandler.error(
+        res,
+        messages.join(", "),
+        resCode.BAD_REQUEST
+      );
     }
 
-    return next(error);
+    return next(error); // fallback for unknown errors
   }
 };
+
 export default {
   assignJobToEmployee,
-  assignJobToManyEmployees
-
+  assignJobToManyEmployees,
 };

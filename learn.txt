@@ -1,0 +1,5 @@
+findOne({ where: { ... } })	   findOne({ ... })
+findAll()	                   find()
+findByPk(id)	               findById(id)
+update(..., { where })	       findByIdAndUpdate(id, update, { new: true })
+destroy({ where })	           findByIdAndDelete(id)

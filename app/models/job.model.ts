@@ -10,6 +10,7 @@ const JobSchema = new mongoose.Schema(
     },
     job_sku: {
       type: String,
+      unique: true,
       required: [true, "Job SKU is required"],
       maxlength: [20, "Job SKU cannot exceed 20 characters"],
       trim: true,

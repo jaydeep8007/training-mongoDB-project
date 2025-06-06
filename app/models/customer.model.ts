@@ -1,21 +1,6 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose from "mongoose";
 
-// TypeScript interface for the document
-export interface ICustomer extends Document {
-  cus_firstname: string;
-  cus_lastname: string;
-  cus_email: string;
-  cus_phone_number: string;
-  cus_password: string;
-  reset_password_token?: string | null;
-  reset_password_expires?: Date | null;
-  cus_status: "active" | "inactive" | "restricted" | "blocked";
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Mongoose Schema definition
-const CustomerSchema: Schema = new Schema<ICustomer>(
+const CustomerSchema = new mongoose.Schema(
   {
     cus_firstname: {
       type: String,
@@ -52,14 +37,7 @@ const CustomerSchema: Schema = new Schema<ICustomer>(
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
     },
-    reset_password_token: {
-      type: String,
-      default: null,
-    },
-    reset_password_expires: {
-      type: Date,
-      default: null,
-    },
+  
     cus_status: {
       type: String,
       enum: ["active", "inactive", "restricted", "blocked"],
@@ -68,11 +46,10 @@ const CustomerSchema: Schema = new Schema<ICustomer>(
     },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt fields
+    timestamps: true,
     collection: "customers",
   }
 );
 
-// Export model
-const Customer = mongoose.model<ICustomer>("Customer", CustomerSchema);
+const Customer = mongoose.model("Customer", CustomerSchema);
 export default Customer;

@@ -13,7 +13,6 @@ const CustomerAuthSchema = new mongoose.Schema(
     },
     cus_refresh_auth_token: {
       type: String,
-      required: true,
       unique: true,
     },
   },

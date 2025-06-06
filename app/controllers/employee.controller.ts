@@ -1,27 +1,37 @@
-import { NextFunction, Request, Response } from "express";
-import employeeModel from "../models/employee.model";
-import job from "../models/job.model";
+import { Request, Response, NextFunction } from "express";
+import employeeModel from "../models/employee.model"; // ✅ Mongoose model
 import { employeeCreateSchema } from "../validations/employee.validation";
-import { resCode } from "../constants/resCode";
 import { responseHandler } from "../services/responseHandler.service";
-import { ValidationError } from "sequelize";
-
-
-// Create a new employee with Zod validation
+import { resCode } from "../constants/resCode";
+import mongoose from "mongoose";
 const createEmployee = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    // Validate request body with Zod
     const parsed = employeeCreateSchema.safeParse(req.body);
-
     if (!parsed.success) {
       const errorMsg = parsed.error.errors.map((err) => err.message).join(", ");
       return responseHandler.error(res, errorMsg, resCode.BAD_REQUEST);
     }
-    console.log("Parsed data:", parsed.data);
 
+    const { emp_email, emp_mobile_number } = parsed.data;
+
+    // Check if email exists
+    const emailExists = await employeeModel.findOne({ emp_email });
+    if (emailExists) {
+      return responseHandler.error(res, "Email already exists", resCode.BAD_REQUEST);
+    }
+
+    // Check if phone exists
+    const phoneExists = await employeeModel.findOne({ emp_mobile_number });
+    if (phoneExists) {
+      return responseHandler.error(res, "Mobile number already exists", resCode.BAD_REQUEST);
+    }
+
+    // Create new employee
     const newEmployee = await employeeModel.create(parsed.data);
 
     return responseHandler.success(
@@ -30,53 +40,48 @@ const createEmployee = async (
       newEmployee,
       resCode.CREATED
     );
-  } catch (error) {
-    // ✅ Handle Sequelize validation errors
-    if (error instanceof ValidationError) {
-      const messages = error.errors.map((err) => err.message);
-      return responseHandler.error(
-        res,
-        messages.join(", "),
-        resCode.BAD_REQUEST
-      );
+
+  } catch (error: any) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return responseHandler.error(res, messages.join(", "), resCode.BAD_REQUEST);
     }
-    // 🔁 Forward any other unhandled error to the global error handler
+
+    if (error.name === "MongoServerError" && error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      const message = `${field} already exists`;
+      return responseHandler.error(res, message, resCode.BAD_REQUEST);
+    }
+
     return next(error);
   }
 };
-
-
+// ✅ Get all employees
 const getAllEmployees = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const employees = await employeeModel.findAll();
+    const employees = await employeeModel.find();
 
     return responseHandler.success(
       res,
-      "Employees feched succesfully",
+      "Employees fetched successfully",
       employees,
       resCode.OK
     );
-  } catch (error) {
-    // ✅ Handle Sequelize validation errors
-    if (error instanceof ValidationError) {
-      const messages = error.errors.map((err) => err.message);
-      return responseHandler.error(
-        res,
-        messages.join(", "),
-        resCode.BAD_REQUEST
-      );
+  } catch (error: any) {
+      if (error instanceof mongoose.Error.ValidationError) {
+        const messages = Object.values(error.errors).map((err) => err.message);
+        return responseHandler.error(res, messages.join(", "), resCode.BAD_REQUEST);
+      }
+  
+      return next(error); // fallback for unknown errors
     }
-
-    // 🔁 Forward any other unhandled error to the global error handler
-    return next(error);
-  }
 };
 
 export default {
-  getAllEmployees,
   createEmployee,
+  getAllEmployees,
 };

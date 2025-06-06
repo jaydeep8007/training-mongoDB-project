@@ -1,11 +1,14 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { get } from "./config"; // adjust the path if needed
 dotenv.config();
 
 export const connectMongo = async () => {
   try {
-    const mongoURI = process.env.MONGO_URI; // Correct key
-    if (!mongoURI) throw new Error("Mongo URI not found in environment variables.");
+    const config = get(process.env.NODE_ENV); // get config based on env
+    const mongoURI = config.database.MONGO_URI;
+
+    if (!mongoURI) throw new Error("Mongo URI not found in config.");
 
     await mongoose.connect(mongoURI);
     console.log("✅ Connected to MongoDB");
