@@ -3,3 +3,12 @@ findAll()	                   find()
 findByPk(id)	               findById(id)
 update(..., { where })	       findByIdAndUpdate(id, update, { new: true })
 destroy({ where })	           findByIdAndDelete(id)
+
+
+syncronised and asyncronised differnce concept javascript 
+safe parse and parse diffence 
+collition in mongo 
+naming convention changes to camel case 
+promary id changes 
+add all validation in zod 
+add employee as a reference to customer and add validation in employee apis 
