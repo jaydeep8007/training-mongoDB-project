@@ -18,7 +18,7 @@ const customerAuthSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    collection: "customer_auth",
+    collection: "customerAuth",
   }
 );
 

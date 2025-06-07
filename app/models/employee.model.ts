@@ -29,7 +29,7 @@ const employeeSchema = new mongoose.Schema(
     },
   },
   {
-    collection: "employee",
+    collection: "employees",
     timestamps: true,
   }
 );

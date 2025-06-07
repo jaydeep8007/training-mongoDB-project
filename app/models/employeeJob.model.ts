@@ -14,7 +14,7 @@ const employeeJobSchema = new mongoose.Schema(
     },
   },
   {
-    collection: "employee_job",
+    collection: "employeeJob",
     timestamps: true,
   }
 );
