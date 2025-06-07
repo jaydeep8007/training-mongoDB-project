@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 
-const EmployeeSchema = new mongoose.Schema(
+const employeeSchema = new mongoose.Schema(
   {
     emp_name: {
       type: String,
@@ -26,7 +26,6 @@ const EmployeeSchema = new mongoose.Schema(
       type: Number,  // use String for mobile numbers to preserve formatting and leading zeros
       required: [true, "Mobile number is required"],
       unique: true,
-      // You can add validation here for length or pattern if needed
     },
   },
   {
@@ -35,6 +34,6 @@ const EmployeeSchema = new mongoose.Schema(
   }
 );
 
-const Employee = mongoose.model("Employee", EmployeeSchema);
+const employeeModel = mongoose.model("Employee", employeeSchema);
 
-export default Employee;
+export default employeeModel;

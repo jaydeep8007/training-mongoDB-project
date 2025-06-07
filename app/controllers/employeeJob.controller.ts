@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import employeeJobModel from "../models/employeeJob.model";
 import employeeModel from "../models/employee.model";
 import jobModel from "../models/job.model";
-import employee_jobValidation from "../validations/employeeJob.validation";
+import employeeJobValidation from "../validations/employeeJob.validation";
 import { responseHandler } from "../services/responseHandler.service";
 import { resCode } from "../constants/resCode";
 import mongoose from "mongoose";
@@ -14,7 +14,7 @@ const assignJobToEmployee = async (
   next: NextFunction
 ) => {
   try {
-    const parsed = employee_jobValidation.assignJobSchema.safeParse(req.body);
+    const parsed = employeeJobValidation.assignJobSchema.safeParse(req.body);
     if (!parsed.success) {
       const errorMsg = parsed.error.errors.map((err) => err.message).join(", ");
       return responseHandler.error(res, errorMsg, resCode.BAD_REQUEST);
@@ -76,7 +76,7 @@ const assignJobToManyEmployees = async (
   next: NextFunction
 ) => {
   try {
-    const parsed = employee_jobValidation.assignMultipleJobsSchema.safeParse(
+    const parsed = employeeJobValidation.assignMultipleJobsSchema.safeParse(
       req.body
     );
     if (!parsed.success) {

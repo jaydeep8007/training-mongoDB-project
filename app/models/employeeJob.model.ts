@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const EmployeeJobSchema = new mongoose.Schema(
+const employeeJobSchema = new mongoose.Schema(
   {
     emp_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -19,6 +19,6 @@ const EmployeeJobSchema = new mongoose.Schema(
   }
 );
 
-const EmployeeJob = mongoose.model("EmployeeJob", EmployeeJobSchema);
+const employeeJobModel = mongoose.model("EmployeeJob", employeeJobSchema);
 
-export default EmployeeJob;
+export default employeeJobModel;

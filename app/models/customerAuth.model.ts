@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const CustomerAuthSchema = new mongoose.Schema(
+const customerAuthSchema = new mongoose.Schema(
   {
     cus_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -22,6 +22,6 @@ const CustomerAuthSchema = new mongoose.Schema(
   }
 );
 
-const CustomerAuth = mongoose.model("CustomerAuth", CustomerAuthSchema);
+const customerAuthModel = mongoose.model("CustomerAuth", customerAuthSchema);
 
-export default CustomerAuth;
+export default customerAuthModel;

@@ -9,6 +9,6 @@ syncronised and asyncronised differnce concept javascript
 safe parse and parse diffence 
 collition in mongo 
 naming convention changes to camel case 
-promary id changes 
+primary id changes 
 add all validation in zod 
 add employee as a reference to customer and add validation in employee apis 

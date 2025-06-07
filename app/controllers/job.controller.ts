@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jobModel from "../models/job.model"; // ✅ Mongoose model
+import jobModel from "../models/job.model"; 
 import { jobCreateSchema } from "../validations/job.validation";
 import { resCode } from "../constants/resCode";
 import { responseHandler } from "../services/responseHandler.service";
