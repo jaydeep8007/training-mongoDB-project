@@ -6,13 +6,10 @@ dotenv.config();
 
 const router = express.Router();
 
-import employee_JobController from "../controllers/employeeJob.controller";
-
+import employeeJobController from "../controllers/employeeJob.controller";
 
 // 📦 Employee CRUD routes
-router.post("/", employee_JobController.assignJobToEmployee);
-router.post("/assign-multiple", employee_JobController.assignJobToManyEmployees);
-router.get("/all-mappings", employee_JobController.getAllEmployeeJobMappings);
-
+router.post("/", employeeJobController.assignJobToEmployee);
+router.post("/assign-multiple", employeeJobController.assignJobToManyEmployees);
 
 export default router;

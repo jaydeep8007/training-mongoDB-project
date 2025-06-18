@@ -3,14 +3,14 @@ import mongoose from "mongoose";
 const employeeJobSchema = new mongoose.Schema(
   {
     emp_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Number,
       required: true,
-      ref: "Employee",
+      ref: "employee",
     },
     job_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Number,
       required: true,
-      ref: "Job",
+      ref: "job",
     },
   },
   {
@@ -19,6 +19,6 @@ const employeeJobSchema = new mongoose.Schema(
   }
 );
 
-const employeeJobModel = mongoose.model("EmployeeJob", employeeJobSchema);
+const employeeJobModel = mongoose.model("employeeJob", employeeJobSchema);
 
 export default employeeJobModel;

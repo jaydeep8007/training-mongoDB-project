@@ -19,6 +19,6 @@ export const jobCreateSchema = z
       .min(2, "Job category must be at least 2 characters")
       .max(50, "Job category must be at most 50 characters")
       .trim(),
-  })
+  }).strict()
   
   

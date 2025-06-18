@@ -5,7 +5,7 @@ const customerAuthSchema = new mongoose.Schema(
     cus_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "Customer",
+      ref: "customer",
     },
     cus_auth_token: {
       type: String,
@@ -22,6 +22,6 @@ const customerAuthSchema = new mongoose.Schema(
   }
 );
 
-const customerAuthModel = mongoose.model("CustomerAuth", customerAuthSchema);
+const customerAuthModel = mongoose.model("customerAuth", customerAuthSchema);
 
 export default customerAuthModel;

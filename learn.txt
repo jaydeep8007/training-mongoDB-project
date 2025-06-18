@@ -12,3 +12,67 @@ naming convention changes to camel case
 primary id changes 
 add all validation in zod 
 add employee as a reference to customer and add validation in employee apis 
+
+
+No, you cannot use refine or superRefine alone to check email uniqueness with the database, because:
+
+Zod's refine and superRefine only support synchronous logic.
+
+❌ Why this won’t work for DB:
+
+cus_email: z.string().email().refine(async (email) => {
+  const exists = await employeeModel.findOne({ emp_email: email });
+  return !exists;
+}, {
+  message: "Email already exists",
+});
+This will throw an error like:
+
+Error: Async refinement passed to synchronous refine
+
+,
+
+
+Explanation of important options:
+
+Option          Values/Type                                    Description
+-----------------------------------------------------------------------------------------
+locale          "en", "fr", "de", "zh", "es", "sv", "tr",    Language locale that determines collation rules
+                etc. (BCP 47 codes)                            (sorting order, accents, etc.)
+
+strength        1 to 5                                        Level of comparison sensitivity:
+                                                             1: base chars only
+                                                             2: base + case-insensitive
+                                                             3: base + case + accents
+                                                             4: base + case + accents + variant
+                                                             5: identical (Unicode code point)
+
+caseLevel       true or false                                 When true, uppercase is distinguished from
+                                                             lowercase at a secondary level
+
+numericOrdering true or false                                 When true, numeric substrings in strings are
+                                                             compared as numbers ("2" < "10"). Default is false
+
+alternate       "shifted" or "non-ignorable"                  Determines whether spaces and punctuation are
+                                                             considered in comparisons (shifted ignores them)
+
+maxVariable     "punct" or "space"                             Specifies which characters are ignored when
+                                                             alternate is shifted
+
+backwards       true or false                                 For French locale, compare accents from the end
+                                                             of the string
+
+                                                             {
+ example --> locale: "en",
+        strength: 2  // Case-insensitive, accent-sensitive
+       }
+
+default -->{
+  locale: "simple",
+  strength: 4,
+  caseLevel: false,
+  numericOrdering: false,
+  alternate: "non-ignorable",
+  maxVariable: "punct",
+  backwards: false,
+}
