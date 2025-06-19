@@ -3,6 +3,8 @@ export const msg = {
     unexpectedError: "Oops! Something went wrong. Please try again later.",
     unauthorized: "You are not authorized to perform this action.",
     invalidToken: "Session expired or token is invalid. Please log in again.",
+    tokenNotFound :"Token not found",
+    serverError: "Internal server error. Please contact support.",
     invalidId: "No matching record found for the given ID.",
     fetchSuccess: "Data retrieved successfully.",
     createSuccess: "Record created successfully.",
@@ -40,6 +42,7 @@ export const msg = {
   auth: {
     signupSuccess: "Customer signed up successfully.",
     loginSuccess: "Login successful.",
+    logoutSucces:"Logout successful",
     customerNotFound: "Customer not found.",
     invalidPassword: "Invalid password.",
     emailExists: "Email already exists.",
@@ -48,6 +51,7 @@ export const msg = {
     resetTokenGenerated: "Reset token generated successfully.",
     invalidResetToken: "Invalid or expired reset token.",
     passwordResetSuccess: "Password reset successfully.",
+    profileFetchSuccess:"profile feched succesfully"
   },
   employee: {
     createSuccess: "Employee created successfully.",

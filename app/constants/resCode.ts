@@ -8,6 +8,7 @@ const DUPLICATE_DATA = 409;
 const UNPROCESSEBLE_CONTENT = 422;
 const SERVER_ERROR = 500;
 
+
 export const resCode = {
     OK,
     CREATED,
@@ -18,4 +19,5 @@ export const resCode = {
     UNPROCESSEBLE_CONTENT,
     SERVER_ERROR,
     DUPLICATE_DATA,
+   
 };

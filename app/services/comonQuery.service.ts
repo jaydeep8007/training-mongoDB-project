@@ -24,7 +24,7 @@ async getAll(
 
     const total_data_count = await model.countDocuments(filter);
 
-    const data = await model.find(filter , { _id: 0 }) //{ _id: 0 } this hides _id in response 
+    const data = await model.find(filter) 
       .skip(offset)
       .limit(results_per_page)
       .lean();

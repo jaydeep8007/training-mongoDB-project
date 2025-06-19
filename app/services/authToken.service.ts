@@ -16,7 +16,10 @@ interface AuthenticatedRequest extends Request {
 
 /* VERIFY AUTH TOKEN */
 const verifyAuthToken: RequestHandler = (req, res, next) => {
-  const token = req.header("token");
+  const token = 
+  req.cookies?.token ||
+    req.headers.authorization?.split(" ")[1] ||
+    req.header("token");
 
   if (!token) {
     res.status(403).json({ message: "Unauthorized User" });
