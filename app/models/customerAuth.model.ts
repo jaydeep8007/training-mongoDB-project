@@ -11,7 +11,7 @@ const customerAuthSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    cus_refresh_auth_token: {
+    cus_auth_refresh_token: {
       type: String,
       unique: true,
     },

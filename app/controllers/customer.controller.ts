@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import customerModel from "../models/customer.model";
-import employeeModel from "../models/employee.model";
 import { hashPassword } from "../services/password.service";
 import { responseHandler } from "../services/responseHandler.service";
 import { resCode } from "../constants/resCode";
@@ -77,26 +76,24 @@ const addCustomer = async (req: Request, res: Response, next: NextFunction) => {
  */
 const getCustomers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // ✅ Parse pagination parameters from query
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const results_per_page = parseInt(req.query.results_per_page as string, 10) || 10;
+    const { page, results_per_page } = req.query;
 
-    // ✅ Fetch paginated customer data
-    const result = await customerQuery.getAll({}, { page, limit: results_per_page });
+    // 🔄 Aggregation to fetch employees linked with customer
+    const pipeline = [
+      {
+        $lookup: {
+          from: "employee",           // collection name
+          localField: "_id",          // customer._id
+          foreignField: "cus_id",     // employee.cus_id
+          as: "employee",
+        },
+      },
+    ];
 
-    const customers = result.data;
-    const cus_ids = customers.map((customer: any) => customer.cus_id);
-
-    // ✅ Fetch all employees linked to these customer IDs
-    const employees = await employeeModel.find({ cus_id: { $in: cus_ids } }).lean();
-
-    // ✅ Attach related employees to each customer
-    const customers_with_employees = customers.map((customer: any) => {
-      const related_employees = employees.filter(emp => emp.cus_id === customer.cus_id);
-      return {
-        ...customer,
-        employees: related_employees,
-      };
+    // 🔎 Use aggregation-based query from commonQueryMongo
+    const result = await customerQuery.getAllWithAggregation(pipeline, {
+      page,
+      limit: results_per_page,
     });
 
     return responseHandler.success(
@@ -104,7 +101,7 @@ const getCustomers = async (req: Request, res: Response, next: NextFunction) => 
       msg.customer.fetchSuccess,
       {
         ...result.pagination,
-        data: customers_with_employees,
+        customer: result.data,
       },
       resCode.OK
     );
@@ -113,31 +110,47 @@ const getCustomers = async (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
+
+
 /* ============================================================================
  * 🔍 Get Customer by ID (with associated employees)
  * ============================================================================
  */
 const getCustomerById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // ✅ Find customer by cus_id
-    const customer = await customerQuery.getOne({ cus_id: Number(req.params.id) });
-    if (!customer) {
+    const customerId = req.params.id;
+
+    // ✅ Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(customerId)) {
+      return responseHandler.error(res, msg.common.invalidId, resCode.BAD_REQUEST);
+    }
+
+    // ✅ Use aggregation with $lookup to fetch customer + employees
+    const customer = await customerModel.aggregate([
+      {
+        $match: { _id: new mongoose.Types.ObjectId(customerId) },
+      },
+      {
+        $lookup: {
+          from: "employee", // Collection name
+          localField: "_id", // Customer _id
+          foreignField: "cus_id", // Employee reference field
+          as: "employee",
+        },
+      },
+    ]);
+
+    if (!customer || customer.length === 0) {
       return responseHandler.error(res, msg.customer.notFound, resCode.NOT_FOUND);
     }
 
-    // ✅ Find all employees linked to this customer
-    const employees = await employeeModel.find({ cus_id: customer.cus_id });
-
-    const result = {
-      ...customer.toObject(),
-      employees,
-    };
-
-    return responseHandler.success(res, msg.common.fetchSuccess, result, resCode.OK);
+    return responseHandler.success(res, msg.common.fetchSuccess, customer[0], resCode.OK);
   } catch (error) {
     return next(error);
   }
 };
+
+
 
 /* ============================================================================
  * ✏️ Update Customer by ID
@@ -152,10 +165,15 @@ const updateCustomer = async (req: Request, res: Response, next: NextFunction) =
       return responseHandler.error(res, errorMsg, resCode.BAD_REQUEST);
     }
 
-    // ✅ Update customer by cus_id
-    const result = await customerQuery.update({ cus_id: Number(req.params.id) }, parsed.data);
+    const customerId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(customerId)) {
+      return responseHandler.error(res, msg.common.invalidId, resCode.BAD_REQUEST);
+    }
 
-    if (result.affectedCount === 0) {
+    // ✅ Update by _id (ObjectId)
+    const result = await customerQuery.update({ _id: customerId }, parsed.data);
+
+    if (!result.updatedRows || result.updatedRows.length === 0) {
       return responseHandler.error(res, msg.customer.notFound, resCode.NOT_FOUND);
     }
 
@@ -170,14 +188,22 @@ const updateCustomer = async (req: Request, res: Response, next: NextFunction) =
   }
 };
 
+
 /* ============================================================================
  * ❌ Delete Customer by ID
  * ============================================================================
  */
 const deleteCustomerById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // ✅ Delete customer by cus_id
-    const result = await customerQuery.deleteById({ cus_id: Number(req.params.id) });
+    const customerId = req.params.id;
+
+    // ✅ Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(customerId)) {
+      return responseHandler.error(res, msg.common.invalidId, resCode.BAD_REQUEST);
+    }
+
+    // ✅ Delete by _id
+    const result = await customerQuery.deleteById({ _id: customerId });
 
     if (!result.deleted) {
       return responseHandler.error(res, msg.customer.notFound, resCode.NOT_FOUND);
@@ -188,6 +214,7 @@ const deleteCustomerById = async (req: Request, res: Response, next: NextFunctio
     return next(error);
   }
 };
+
 
 export default {
   addCustomer,

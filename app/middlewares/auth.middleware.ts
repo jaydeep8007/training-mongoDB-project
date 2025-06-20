@@ -15,22 +15,24 @@ declare global {
 }
 
 const authCustomer = async (req: Request, res: Response, next: NextFunction) => {
-  // ✅ Reuse token verification from service
   authToken.verifyAuthToken(req, res, async () => {
     try {
-        const decoded = (req as any).user;
-console.log("Decoded token:", decoded);
-      // You may use `_id` or `id` depending on your token payload
-      const customer = await customerModel.findById(decoded.id); // or `decoded._id`
+      const decoded = (req as any).user;
+
+      // ✅ Ensure decoded token has _id
+      if (!decoded?._id) {
+        return responseHandler.error(res, msg.common.unauthorized, resCode.UNAUTHORIZED);
+      }
+
+      const customer = await customerModel.findById(decoded._id);
 
       if (!customer) {
         return responseHandler.error(res, msg.auth.customerNotFound, resCode.NOT_FOUND);
       }
 
-      // ✅ Attach full customer info to req.user
+      // ✅ Attach user info to req.user
       req.user = {
         _id: customer._id,
-        cus_id: customer.cus_id,
         cus_email: customer.cus_email,
         cus_firstname: customer.cus_firstname,
       };

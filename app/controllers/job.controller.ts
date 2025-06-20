@@ -58,31 +58,23 @@ export const createJob = async (
  */
 const getAllJobs = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // ✅ Extract pagination params from query (defaults: page=1, limit=10)
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
-    const skip = (page - 1) * limit;
 
-    // ✅ Fetch paginated jobs using skip/limit
-    const jobs = await jobQuery.getAll({}, { skip, limit });
-
-    // ✅ Get total document count for pagination metadata
-    const total = await jobModel.countDocuments({});
+    // ✅ Use commonQuery to get jobs with pagination
+    const result = await jobQuery.getAll({}, { page, limit });
 
     return responseHandler.success(
       res,
       msg.job.fetchSuccess,
       {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-        jobs,
+        ...result.pagination,
+        jobs: result.data,
       },
       resCode.OK
     );
   } catch (error) {
-    return next(error); // ❌ fallback error
+    return next(error);
   }
 };
 

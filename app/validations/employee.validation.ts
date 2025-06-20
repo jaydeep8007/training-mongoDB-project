@@ -51,9 +51,9 @@ const employeeCreateSchema = z
       .min(2, "Company name must be at least 2 characters")
       .max(100, "Company name must be at most 100 characters"),
 
-    cus_id: z.number({
+    cus_id: z.string({
       required_error: "Customer ID is required",
-      invalid_type_error: "Customer ID must be a number",
+      invalid_type_error: "Customer ID must be a Valid String",
     }),
 
     emp_mobile_number: z
@@ -101,7 +101,7 @@ const employeeUpdateSchema = z
       .string()
       .regex(/^\d{10}$/, "Mobile number must be 10 digits")
       .optional(),
-    cus_id: z.number().int("Customer ID must be an integer").optional(),
+    cus_id: z.string().min(1, "Customer ID is required").optional(),
   })
   .strict();
 

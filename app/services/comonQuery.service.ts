@@ -1,6 +1,6 @@
 import employeeModel from "../models/employee.model";
 
-const commonQueryMongo :any = (model: any) => {
+const commonQueryMongo: any = (model: any) => {
   return {
     // ✅ CREATE new record
     async create(data: Record<string, any>) {
@@ -12,36 +12,38 @@ const commonQueryMongo :any = (model: any) => {
       }
     },
 
- // ✅ GET ALL records with pagination and manual employee attach
-async getAll(
-  filter: Record<string, any> = {},
-  options: Record<string, any> = {}
-) {
-  try {
-    const page = Number(options.page) > 0 ? Number(options.page) : 1;
-    const results_per_page = Number(options.limit) > 0 ? Number(options.limit) : 10;
-    const offset = (page - 1) * results_per_page;
+    // ✅ GET ALL records with pagination and manual employee attach
+    async getAll(
+      filter: Record<string, any> = {},
+      options: Record<string, any> = {}
+    ) {
+      try {
+        const page = Number(options.page) > 0 ? Number(options.page) : 1;
+        const results_per_page =
+          Number(options.limit) > 0 ? Number(options.limit) : 10;
+        const offset = (page - 1) * results_per_page;
 
-    const total_data_count = await model.countDocuments(filter);
+        const total_data_count = await model.countDocuments(filter);
 
-    const data = await model.find(filter) 
-      .skip(offset)
-      .limit(results_per_page)
-      .lean();
+        const data = await model
+          .find(filter)
+          .skip(offset)
+          .limit(results_per_page)
+          .lean();
 
-    return {
-      data,
-      pagination: {
-        page,
-        results_per_page,
-        total_data_count,
-        total_pages: Math.ceil(total_data_count / results_per_page),
+        return {
+          data,
+          pagination: {
+            // page,
+            // results_per_page,
+           count: total_data_count,
+            // total_pages: Math.ceil(total_data_count / results_per_page),
+          },
+        };
+      } catch (error) {
+        throw error;
       }
-    };
-  } catch (error) {
-    throw error;
-  }
-},
+    },
 
     // ✅ GET ONE record by filter
     async getOne(filter: Record<string, any> = {}) {
@@ -104,6 +106,38 @@ async getAll(
         return {
           affectedCount: result.modifiedCount ?? result.nModified ?? 0,
           updatedRows,
+        };
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    // ✅ GET ALL using aggregation (e.g. for lookups)
+    async getAllWithAggregation(
+      pipeline: any[] = [],
+      options: Record<string, any> = {}
+    ) {
+      try {
+        const page = Number(options.page) > 0 ? Number(options.page) : 1;
+        const results_per_page =
+          Number(options.limit) > 0 ? Number(options.limit) : 10;
+        const skip = (page - 1) * results_per_page;
+
+        // Append pagination stages
+        const paginatedPipeline = [
+          ...pipeline,
+          { $skip: skip },
+          { $limit: results_per_page },
+        ];
+
+        const data = await model.aggregate(paginatedPipeline);
+        const total_data_count = await model.countDocuments(); // base count
+
+        return {
+          data,
+          pagination: {
+            count: total_data_count,
+          },
         };
       } catch (error) {
         throw error;
